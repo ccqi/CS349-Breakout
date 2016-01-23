@@ -1,14 +1,22 @@
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+
 import javax.swing.*;
 
-public class Breakout extends JPanel{
+public class Breakout extends JPanel {
 	int fps;
 	int speed;
 	int lives;
@@ -17,17 +25,85 @@ public class Breakout extends JPanel{
 	Paddle paddle;
 	ArrayList<Block> blocks;
 	
-	final static Point MODEL_SIZE = new Point(1280, 720);
-	final static Point PADDLE_SIZE = new Point(150,15);
-	final static Point BALL_SIZE = new Point(25,25);
+	public final static Point MODEL_SIZE = new Point(1280, 720);
+	public final static Point PADDLE_SIZE = new Point(150,15);
+	public final static Point BALL_SIZE = new Point(25,25);
 	
 	public JFrame window;
+	
+	public class MouseEvents extends MouseAdapter {
+		@Override
+		public void mouseMoved(MouseEvent e) {
+			Point newPos = getModelCoordinates(e.getPoint());
+			if (paddle.update(newPos) == Collision.NONE && !ball.launched()) {
+				ball.update(newPos);
+			}
+		}
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			if (!ball.launched()) {
+				ball.launch();
+			}
+		}
+	}
+	
+	public class KeyEvents extends KeyAdapter {
+		@Override
+		public void keyPressed(KeyEvent e) {
+			int keyCode = e.getKeyCode();
+			Point newPos = paddle.getPos();
+			switch(keyCode) {
+				case KeyEvent.VK_LEFT:
+					newPos.x ++;
+				case KeyEvent.VK_RIGHT:
+					newPos.x --;
+			}
+			paddle.update(newPos);
+			repaint();
+		}
+		@Override
+		public void keyReleased(KeyEvent e) {
+			int keyCode = e.getKeyCode();
+			Point newPos = paddle.getPos();
+			switch(keyCode) {
+				case KeyEvent.VK_LEFT:
+					newPos.x ++;
+				case KeyEvent.VK_RIGHT:
+					newPos.x --;
+			}
+			paddle.update(newPos);
+			repaint();
+		}
+	}
 	
 	public Breakout(int fps, int speed) {
 		this.fps = fps;
 		this.speed = speed;
 		this.lives = 3;
 		this.score = 0;
+		this.setFocusable(true);
+		MouseAdapter mouseEvents = new MouseEvents();
+		
+		Timer t = new Timer(1000/this.fps, new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				update();
+			}
+		});
+		t.start();
+		//KeyAdapter keyEvents = new KeyEvents();
+		this.addMouseListener(mouseEvents);
+		this.addMouseMotionListener(mouseEvents);
+		//this.addKeyListener(keyEvents);
+		// Transparent 16 x 16 pixel cursor image.
+		BufferedImage cursorImg = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+
+		// Create a new blank cursor.
+		Cursor blankCursor = Toolkit.getDefaultToolkit().createCustomCursor(
+		    cursorImg, new Point(0, 0), "blank cursor");
+
+		// Set the blank cursor to the JFrame.
+		// this.setCursor(blankCursor);
 		this.initModel();
 	}
 	
@@ -67,26 +143,54 @@ public class Breakout extends JPanel{
 		});
 	}
 	
+	public void checkCollision() {
+		Collision c = ball.checkCollision(paddle);
+		ball.changeDirection(c);
+		while (ball.checkCollision(paddle) == Collision.UP) {
+			ball.update(this.speed);
+		}
+	}
+	
+	public void update() {
+		if (ball.launched()) {
+			Collision collision = ball.update(this.speed);
+			if (collision == Collision.DOWN) {
+				this.reset();
+			}
+			if (collision == Collision.NONE) {
+				this.checkCollision();
+			}
+		}
+		this.repaint();
+	}
+	
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D)g;
-		this.drawBreakoutObj(g2, this.paddle);
-		this.drawBreakoutObj(g2, this.ball);
 		for (Block b: this.blocks) {
 			this.drawBreakoutObj(g2, b);
 		}
+		this.drawBreakoutObj(g2, this.paddle);
+		this.drawBreakoutObj(g2, this.ball);
 	}
 	
 	private void drawBreakoutObj(Graphics2D g2, BreakoutObj b) {
 		Point scaledLocation = getScaledCoordinates(b.getPos());
 		Point scaledSize = getScaledCoordinates(b.getSize());
+		//b.set(scaledLocation, scaledSize);
 		b.draw(g2, scaledLocation, scaledSize);
 	}
 	
 	private Point getScaledCoordinates(Point p) {
 		Double scaledX = p.getX() * this.getWidth() / MODEL_SIZE.x;
 		Double scaledY = p.getY() * this.getHeight() / MODEL_SIZE.y;
+		return new Point(scaledX.intValue(), scaledY.intValue());
+	}
+	
+	private Point getModelCoordinates(Point p) {
+		Double scaledX = p.getX() * MODEL_SIZE.x / this.getWidth();
+		Double scaledY = p.getY() * MODEL_SIZE.y / this.getHeight();
 		return new Point(scaledX.intValue(), scaledY.intValue());
 	}
 	
@@ -102,6 +206,11 @@ public class Breakout extends JPanel{
 			Point startPos = new Point(blocksStartingPos.x + x *blockSize.x, blocksStartingPos.y + y *blockSize.y);
 			blocks.add(new Block(startPos, blockSize, this.getColor(y)));
 		}
+	}
+	
+	private void reset() {
+		paddle.set(getInitPaddlePos(), PADDLE_SIZE);
+		ball.set(getInitBallPos(), BALL_SIZE, false);
 	}
 	
 	private Point getInitPaddlePos() {
