@@ -37,14 +37,13 @@ public class Ball extends BreakoutObj{
 		this.launched = launched;
 	}
 	
-	public Collision update(int speed) {
+	public Collision update(int increment) {
 		if (launched) {
 			Point newPos = new Point(this.location);
-			newPos.x +=speed *vX;
-			newPos.y +=speed *vY;
+			newPos.x += increment * vX;
+			newPos.y += increment * vY;
 			Collision collision = checkBounds(newPos);
 			this.changeDirection(collision);
-			
 			if (collision == Collision.NONE) {
 				this.location = newPos;
 			}
@@ -56,6 +55,7 @@ public class Ball extends BreakoutObj{
 	public void changeDirection(Collision collision) {
 		switch (collision) {
 		case UP:
+		case DOWN:
 			vY = -vY;
 			break;
 		case LEFT:
@@ -70,7 +70,9 @@ public class Ball extends BreakoutObj{
 	}
 	
 	public void launch() {
-		launched = true;
+		if (!launched) {
+			launched = true;
+		}
 	}
 	
 }

@@ -69,10 +69,26 @@ public class BreakoutObj {
 	}
 	
 	public Collision checkCollision(BreakoutObj b) {
-		if (this.location.y + this.size.y > b.getPos().y && 
+		if (this.location.y + this.size.y > b.getPos().y &&
+				this.location.y <= b.getPos().y &&
 				this.location.x >= b.getPos().x && 
 				this.location.x < b.getPos().x + b.getSize().x)
 			return Collision.UP;
+		else if (this.location.y  < b.getPos().y + b.getSize().y &&
+				this.location.y + this.size.y >= b.getPos().y + b.getSize().y &&
+				this.location.x >= b.getPos().x && 
+				this.location.x < b.getPos().x + b.getSize().x)
+			return Collision.DOWN;
+		else if (this.location.x + this.size.x > b.getPos().x && 
+				this.location.x <= b.getPos().x &&
+				this.location.y >= b.getPos().y && 
+				this.location.y < b.getPos().y + b.getSize().y)
+			return Collision.LEFT;
+		else if (this.location.x < b.getPos().x + b.getSize().x && 
+				this.location.x + this.size.x >= b.getPos().x + b.getSize().x &&
+				this.location.y >= b.getPos().y && 
+				this.location.y < b.getPos().y + b.getSize().y)
+			return Collision.RIGHT;
 		else
 			return Collision.NONE;
 	}
