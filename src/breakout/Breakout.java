@@ -1,3 +1,4 @@
+package breakout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.EventQueue;
@@ -17,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.swing.*;
-
 public class Breakout extends JPanel {
 	int fps;
 	int speed;
@@ -28,6 +28,8 @@ public class Breakout extends JPanel {
 	Ball ball;
 	Paddle paddle;
 	ArrayList<Block> blocks;
+	
+	Timer timer;
 	
 	public final static Point MODEL_SIZE = new Point(1280, 720);
 	public final static Point PADDLE_SIZE = new Point(150,15);
@@ -73,14 +75,14 @@ public class Breakout extends JPanel {
 		this.setFocusable(true);
 		MouseAdapter mouseEvents = new MouseEvents();
 		
-		Timer t = new Timer(1000/this.fps, new ActionListener() {
+		timer = new Timer(1000/this.fps, new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				update();
 			}
 		});
 		
-		t.start();
+		timer.start();
 		KeyAdapter keyEvents = new KeyEvents();
 		this.addMouseListener(mouseEvents);
 		this.addMouseMotionListener(mouseEvents);
@@ -147,7 +149,11 @@ public class Breakout extends JPanel {
 			if (bc != Collision.NONE) {
 				score+=15;
 				iter.remove();
+				break;
 			}
+		}
+		if (blocks.size() == 0) {
+			timer.stop();
 		}
 	}
 	
@@ -175,6 +181,7 @@ public class Breakout extends JPanel {
 		this.drawBreakoutObj(g2, this.ball);
 		this.drawString(g2, "FPS: " + this.fps, Color.YELLOW, new Point(30,40), "IMPACT", Font.BOLD, 18);
 		this.drawString(g2, "Score: " + this.score, Color.WHITE, new Point(30,70),"IMPACT", Font.BOLD, 18);
+		this.drawString(g2, "Lives: " + this.lives, Color.WHITE, new Point(30,100),"IMPACT", Font.BOLD, 18);
 		Toolkit.getDefaultToolkit().sync();
 	}
 	
@@ -223,10 +230,16 @@ public class Breakout extends JPanel {
 	private void reset() {
 		paddle.set(getInitPaddlePos(), PADDLE_SIZE);
 		ball.set(getInitBallPos(), BALL_SIZE, false);
+		
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+		}
+		if (this.lives == 0 ){
+			timer.stop();
+		} else {
+			this.lives--;
 		}
 	}
 	

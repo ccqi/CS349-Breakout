@@ -1,7 +1,8 @@
+package breakout;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
-
+import breakout.Ball;
 enum Collision {
 	UP, DOWN, LEFT, RIGHT, NONE
 }
