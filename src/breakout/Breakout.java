@@ -169,7 +169,7 @@ public class Breakout extends JPanel {
 			
 		}
 		if (removeBlock != null && nearestCollision != Collision.NONE) {
-			System.out.println(nearestCollision);
+			//System.out.println(nearestCollision);
 			ball.changeDirection(nearestCollision);
 			//timer.stop();
 			score+=15;
@@ -223,7 +223,9 @@ public class Breakout extends JPanel {
 	private void drawString(Graphics2D g2, String s, Color color, Point location, String type, int style, int size) {
 		Double scaledFactor = new Double((this.getWidth() * this.getHeight()) /
 				(MODEL_SIZE.x * MODEL_SIZE.y));
-		int scaledSize = new Double(size * scaledFactor).intValue(); 
+		int scaledSize = new Double(size * scaledFactor).intValue();
+		scaledSize = (scaledSize < 15) ? 15: scaledSize;
+		System.out.println(scaledSize);
 		Point scaledLocation = getScaledCoordinates(location);
 		g2.setColor(color);
 		g2.setFont(new Font(type, style, scaledSize));
