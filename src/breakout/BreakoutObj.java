@@ -71,31 +71,6 @@ public class BreakoutObj {
 	}
 	
 	public Collision checkCollision(BreakoutObj b) {
-		
-//		Point cp = this.getCollisionPoint();
-//		if (cp.x + this.size.x > b.getPos().x && 
-//				cp.x <= b.getPos().x &&
-//				cp.y >= b.getPos().y && 
-//				cp.y < b.getPos().y + b.getSize().y)
-//			return Collision.LEFT;
-//		else if (cp.x < b.getPos().x + b.getSize().x && 
-//				cp.x + this.size.x >= b.getPos().x + b.getSize().x &&
-//				cp.y >= b.getPos().y && 
-//				cp.y < b.getPos().y + b.getSize().y)
-//			return Collision.RIGHT;
-//		else if (cp.y + this.size.y > b.getPos().y &&
-//				cp.y <= b.getPos().y &&
-//				cp.x >= b.getPos().x && 
-//				cp.x < b.getPos().x + b.getSize().x)
-//			return Collision.UP;
-//		else if (cp.y  < b.getPos().y + b.getSize().y &&
-//				cp.y + this.size.y >= b.getPos().y + b.getSize().y &&
-//				cp.x >= b.getPos().x && 
-//				cp.x < b.getPos().x + b.getSize().x)
-//			return Collision.DOWN;
-//		
-//		else
-//			return Collision.NONE;
 		double ax = 0.5 * (this.size.x + b.getSize().x);
 		double ay = 0.5 * (this.size.y + b.getSize().y);
 		double dx = (this.location.x + this.size.x/2) - (b.getPos().x + b.getSize().x/2);
@@ -117,6 +92,12 @@ public class BreakoutObj {
 		} else {
 			return Collision.NONE;
 		}
+	}
+	
+	public double getDistance(BreakoutObj b) {
+		double dx = (this.location.x + this.size.x/2) - (b.getPos().x + b.getSize().x/2);
+		double dy = (this.location.y + this.size.y/2) - (b.getPos().y + b.getSize().y/2);
+		return dx * dx + dy * dy;
 	}
 	
 	protected Point getCollisionPoint() {

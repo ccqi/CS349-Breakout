@@ -14,8 +14,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 
 import javax.swing.*;
 public class Breakout extends JPanel {
@@ -34,6 +38,7 @@ public class Breakout extends JPanel {
 	public final static Point MODEL_SIZE = new Point(1280, 720);
 	public final static Point PADDLE_SIZE = new Point(150,15);
 	public final static Point BALL_SIZE = new Point(20,20);
+	public final static Point BLOCK_SIZE = new Point(65, 20);
 	
 	public JFrame window;
 	
@@ -148,18 +153,34 @@ public class Breakout extends JPanel {
 			ball.update(this.increment);
 		}
 		Iterator<Block> iter = blocks.iterator();
+		double minDist = MODEL_SIZE.x * MODEL_SIZE.x + MODEL_SIZE.y + MODEL_SIZE.y ;
+		Collision nearestCollision = Collision.NONE;
+		Block removeBlock = null;
 		while (iter.hasNext()) {
-			Collision bc = ball.checkCollision(iter.next());
-			ball.changeDirection(bc);
-			//timer.stop();
-			if (bc != Collision.NONE) {
-				System.out.println(bc);
-				//timer.stop();
-				score+=15;
-				iter.remove();
-				break;
+			Block block = iter.next();
+			Collision bc = ball.checkCollision(block);
+			double distance = ball.getDistance(block);
+			if (bc != Collision.NONE && distance < minDist) {
+				minDist = distance;
+				nearestCollision = bc;
+				removeBlock = block;
 			}
+			
+			
 		}
+		if (removeBlock != null && nearestCollision != Collision.NONE) {
+			System.out.println(nearestCollision);
+			ball.changeDirection(nearestCollision);
+			//timer.stop();
+			score+=15;
+			if (removeBlock.getHealth() < 2){
+				blocks.remove(removeBlock);
+			} else {
+				removeBlock.hit();
+			}
+			//timer.stop();
+		}
+		
 		if (blocks.size() == 0) {
 			timer.stop();
 		}
@@ -175,7 +196,7 @@ public class Breakout extends JPanel {
 				this.checkCollision();
 			}
 		}
-		this.repaint();
+		 this.repaint();
 	}
 	
 	@Override
@@ -227,11 +248,10 @@ public class Breakout extends JPanel {
 		blocks = new ArrayList<Block>();
 		Point blocksStartingPos = getBlocksStaringPos();
 		Point blockSize = getBlockSize();
-		for (int i = 0; i < 75; i++) {
-			int x = i % 15;
-			int y = i / 15;
-			Point startPos = new Point(blocksStartingPos.x + x *blockSize.x, blocksStartingPos.y + y *(blockSize.y+50));
-			blocks.add(new Block(startPos, blockSize, this.getColor(y)));
+		ArrayList<Point> points = readFile();
+		for (Point point: points) {
+			Random rand = new Random();
+			blocks.add(new Block(point, BLOCK_SIZE, this.getColor(rand.nextInt(5)), rand.nextInt(4)+1, true));
 		}
 	}
 	
@@ -249,6 +269,29 @@ public class Breakout extends JPanel {
 		} else {
 			this.lives--;
 		}
+	}
+	
+	private ArrayList<Point> readFile() {
+		ArrayList<Point> blockLocation = new ArrayList<Point>();
+		try {
+            BufferedReader in = new BufferedReader(new FileReader("src/blocks.txt"));
+            String str;
+            while ((str = in.readLine()) != null) {
+                System.out.println(str);
+                try {
+                	String[] ar=str.split(",");
+                	Point p = new Point(Integer.parseInt(ar[0].trim()), Integer.parseInt(ar[1].trim()));
+                	blockLocation.add(p);
+                }
+                catch (Exception e) {
+                	 
+                }
+            }
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+		return blockLocation;
 	}
 	
 	private Point getInitPaddlePos() {
