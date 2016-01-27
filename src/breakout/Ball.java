@@ -76,4 +76,15 @@ public class Ball extends BreakoutObj{
 		}
 	}
 	
+	protected Point getCollisionPoint() {
+		Point cp = new Point(location);
+		if (this.vX > 0) {
+			cp.x += this.size.x;
+		}
+		if (this.vY > 0) {
+			cp.x += this.size.y;
+		}
+		return cp;
+	}
+	
 }

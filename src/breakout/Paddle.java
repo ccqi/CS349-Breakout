@@ -16,4 +16,8 @@ public class Paddle extends BreakoutObj{
 		}
 		return collision;
 	}
+	
+	protected Point getCollisionPoint() {
+		return new Point(this.location.x + this.size.x/2, this.location.y + this.size.y);
+	}
 }

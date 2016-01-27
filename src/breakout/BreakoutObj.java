@@ -12,6 +12,7 @@ public class BreakoutObj {
 	Point size;
 	Color color;
 	
+	
 	public BreakoutObj(Point location, Point size, Color color) {
 		this.location = location;
 		this.size = size;
@@ -70,27 +71,55 @@ public class BreakoutObj {
 	}
 	
 	public Collision checkCollision(BreakoutObj b) {
-		if (this.location.y + this.size.y > b.getPos().y &&
-				this.location.y <= b.getPos().y &&
-				this.location.x >= b.getPos().x && 
-				this.location.x < b.getPos().x + b.getSize().x)
-			return Collision.UP;
-		else if (this.location.y  < b.getPos().y + b.getSize().y &&
-				this.location.y + this.size.y >= b.getPos().y + b.getSize().y &&
-				this.location.x >= b.getPos().x && 
-				this.location.x < b.getPos().x + b.getSize().x)
-			return Collision.DOWN;
-		else if (this.location.x + this.size.x > b.getPos().x && 
-				this.location.x <= b.getPos().x &&
-				this.location.y >= b.getPos().y && 
-				this.location.y < b.getPos().y + b.getSize().y)
-			return Collision.LEFT;
-		else if (this.location.x < b.getPos().x + b.getSize().x && 
-				this.location.x + this.size.x >= b.getPos().x + b.getSize().x &&
-				this.location.y >= b.getPos().y && 
-				this.location.y < b.getPos().y + b.getSize().y)
-			return Collision.RIGHT;
-		else
+		
+//		Point cp = this.getCollisionPoint();
+//		if (cp.x + this.size.x > b.getPos().x && 
+//				cp.x <= b.getPos().x &&
+//				cp.y >= b.getPos().y && 
+//				cp.y < b.getPos().y + b.getSize().y)
+//			return Collision.LEFT;
+//		else if (cp.x < b.getPos().x + b.getSize().x && 
+//				cp.x + this.size.x >= b.getPos().x + b.getSize().x &&
+//				cp.y >= b.getPos().y && 
+//				cp.y < b.getPos().y + b.getSize().y)
+//			return Collision.RIGHT;
+//		else if (cp.y + this.size.y > b.getPos().y &&
+//				cp.y <= b.getPos().y &&
+//				cp.x >= b.getPos().x && 
+//				cp.x < b.getPos().x + b.getSize().x)
+//			return Collision.UP;
+//		else if (cp.y  < b.getPos().y + b.getSize().y &&
+//				cp.y + this.size.y >= b.getPos().y + b.getSize().y &&
+//				cp.x >= b.getPos().x && 
+//				cp.x < b.getPos().x + b.getSize().x)
+//			return Collision.DOWN;
+//		
+//		else
+//			return Collision.NONE;
+		double ax = 0.5 * (this.size.x + b.getSize().x);
+		double ay = 0.5 * (this.size.y + b.getSize().y);
+		double dx = (this.location.x + this.size.x/2) - (b.getPos().x + b.getSize().x/2);
+		double dy = (this.location.y + this.size.y/2) - (b.getPos().y + b.getSize().y/2);
+		if (Math.abs(dx) <= ax && Math.abs(dy) <=ay) {
+			double wy = ax * dy;
+			double hx = ay * dx;
+			if (wy > hx)
+		        if (wy > -hx)
+		            return Collision.DOWN;
+		        else
+		            return Collision.RIGHT;
+		    else
+		        if (wy > -hx) 
+		            return Collision.LEFT;
+		        else
+		            return Collision.UP;
+			
+		} else {
 			return Collision.NONE;
+		}
+	}
+	
+	protected Point getCollisionPoint() {
+		return this.location;
 	}
 }

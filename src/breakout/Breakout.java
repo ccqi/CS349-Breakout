@@ -47,7 +47,12 @@ public class Breakout extends JPanel {
 		}
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			ball.launch();
+			//ball.launch();
+			if (timer.isRunning()){
+				timer.stop();
+			} else {
+				timer.start();
+			}
 		}
 	}
 	
@@ -146,7 +151,10 @@ public class Breakout extends JPanel {
 		while (iter.hasNext()) {
 			Collision bc = ball.checkCollision(iter.next());
 			ball.changeDirection(bc);
+			//timer.stop();
 			if (bc != Collision.NONE) {
+				System.out.println(bc);
+				//timer.stop();
 				score+=15;
 				iter.remove();
 				break;
@@ -219,10 +227,10 @@ public class Breakout extends JPanel {
 		blocks = new ArrayList<Block>();
 		Point blocksStartingPos = getBlocksStaringPos();
 		Point blockSize = getBlockSize();
-		for (int i = 0; i < 90; i++) {
+		for (int i = 0; i < 75; i++) {
 			int x = i % 15;
 			int y = i / 15;
-			Point startPos = new Point(blocksStartingPos.x + x *blockSize.x, blocksStartingPos.y + y *blockSize.y);
+			Point startPos = new Point(blocksStartingPos.x + x *blockSize.x, blocksStartingPos.y + y *(blockSize.y+50));
 			blocks.add(new Block(startPos, blockSize, this.getColor(y)));
 		}
 	}
