@@ -4,7 +4,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import breakout.Ball;
 enum Collision {
-	UP, DOWN, LEFT, RIGHT, NONE
+	UP, DOWN, LEFT, RIGHT, CORNER, NONE
 }
 
 public class BreakoutObj {
@@ -47,23 +47,23 @@ public class BreakoutObj {
 	
 	public Collision checkBounds(Point p) {
 		if (p.x < 0)
-			return Collision.LEFT;
-		else if (p.x + this.size.x >= Breakout.MODEL_SIZE.x)
 			return Collision.RIGHT;
+		else if (p.x + this.size.x >= Breakout.MODEL_SIZE.x)
+			return Collision.LEFT;
 		else if (p.y < 0)
-			return Collision.UP;
-		else if (p.y + this.size.y >= Breakout.MODEL_SIZE.y)
 			return Collision.DOWN;
+		else if (p.y + this.size.y >= Breakout.MODEL_SIZE.y)
+			return Collision.UP;
 		else
 			return Collision.NONE;
 	}
 	
 	public Collision checkBounds(int i) {
 		if (i < 0) {
-			return Collision.LEFT;
+			return Collision.RIGHT;
 		}
 		else if (i+this.size.x >=Breakout.MODEL_SIZE.x){
-			return Collision.RIGHT;
+			return Collision.LEFT;
 		}
 		else {
 			return Collision.NONE;
@@ -81,14 +81,22 @@ public class BreakoutObj {
 			if (wy > hx)
 		        if (wy > -hx)
 		            return Collision.DOWN;
-		        else
-		            return Collision.RIGHT;
-		    else
-		        if (wy > -hx) 
+		        else if (wy < -hx)
 		            return Collision.LEFT;
 		        else
+		        	return Collision.CORNER;
+		    else if (wy < hx) {
+		        if (wy > -hx) 
+		            return Collision.RIGHT;
+		        else if (wy < -hx) {
 		            return Collision.UP;
-			
+		        } else {
+		        	return Collision.CORNER;
+		        }
+		    }
+		    else {
+		    	return Collision.CORNER;
+		    }
 		} else {
 			return Collision.NONE;
 		}

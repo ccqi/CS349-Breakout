@@ -8,6 +8,8 @@ import java.util.ArrayList;
 public class Ball extends BreakoutObj{
 	private int radius;
 	private boolean launched;
+	private boolean acid;
+	private long powerupStart;
 	private int vX;
 	private int vY;
 	
@@ -15,6 +17,7 @@ public class Ball extends BreakoutObj{
 		super(location, size, color);
 		this.radius = radius;
 		this.launched = false;
+		this.acid = false;
 		this.vX = 1;
 		this.vY = -1;
 	}
@@ -22,7 +25,10 @@ public class Ball extends BreakoutObj{
 	@Override
 	public void draw(Graphics2D g2, Point scaledLocation, Point scaledSize) {
 		g2.setColor(this.color);
-		g2.fillOval(scaledLocation.x, scaledLocation.y, scaledSize.x, scaledSize.y);
+		if (this.acid) {
+			g2.setColor(Color.GREEN);
+		}
+		g2.fillRect(scaledLocation.x, scaledLocation.y, scaledSize.x, scaledSize.y);
 	}
 	
 	@Override
@@ -39,6 +45,7 @@ public class Ball extends BreakoutObj{
 	}
 	
 	public Collision update(int increment) {
+		System.out.println(vX + "," + vY);
 		if (launched) {
 			Point newPos = new Point(this.location);
 			newPos.x += increment * vX;
@@ -55,13 +62,36 @@ public class Ball extends BreakoutObj{
 	
 	public void changeDirection(Collision collision) {
 		switch (collision) {
-		case UP:
-		case DOWN:
-			vY = -vY;
+		case UP: {
+			if (vY < 0) {
+				vX = -vX;
+			} else {
+				vY = -vY;
+			}
 			break;
-		case LEFT:
+		}
+		case DOWN: {
+			if (vY > 0) {
+				vX = -vX;
+			} else {
+				vY = -vY;
+			}
+			break;
+		}
+		case LEFT: {
+			if (vX < 0) {
+				vY = -vY;
+			} else {
+				vX = -vX;
+			}
+			break;
+		}
 		case RIGHT:
-			vX = -vX;
+			if (vX > 0) {
+				vY = -vY;
+			} else {
+				vX = -vX;
+			}
 			break;
 		}
 	}
@@ -76,15 +106,26 @@ public class Ball extends BreakoutObj{
 		}
 	}
 	
-	protected Point getCollisionPoint() {
-		Point cp = new Point(location);
-		if (this.vX > 0) {
-			cp.x += this.size.x;
+	public void addPowerUp(PowerUpType powerUp) {
+		switch(powerUp) {
+		case ACID: {
+			this.acid = true;
+			this.powerupStart = System.currentTimeMillis();
 		}
-		if (this.vY > 0) {
-			cp.x += this.size.y;
 		}
-		return cp;
 	}
+	
+	public boolean isAcidic() {
+		return this.acid;
+	}
+	
+	public void checkPowerupDuration() {
+		if (this.acid && System.currentTimeMillis() - this.powerupStart > 3000) {
+			this.acid = false;
+			this.powerupStart = 0;
+		}
+	}
+	
+	
 	
 }

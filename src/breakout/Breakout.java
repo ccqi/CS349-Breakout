@@ -15,23 +15,28 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 public class Breakout extends JPanel {
 	int fps;
 	int speed;
 	int lives;
 	int score;
+	int scoreIncrement;
 	int increment;
 	
 	Ball ball;
 	Paddle paddle;
 	ArrayList<Block> blocks;
+	ArrayList<PowerUp> powerUps;
+	
 	
 	Timer timer;
 	
@@ -39,6 +44,9 @@ public class Breakout extends JPanel {
 	public final static Point PADDLE_SIZE = new Point(150,15);
 	public final static Point BALL_SIZE = new Point(20,20);
 	public final static Point BLOCK_SIZE = new Point(65, 20);
+	public final static Point POWERUP_SIZE = new Point(30, 30);
+	public static ArrayList<BufferedImage> blockImages;
+	
 	
 	public JFrame window;
 	
@@ -66,9 +74,33 @@ public class Breakout extends JPanel {
 		public void keyReleased(KeyEvent e) {
 			int keyCode = e.getKeyCode();
 			switch(keyCode) {
-				case KeyEvent.VK_SPACE:
+				case KeyEvent.VK_SPACE: {
+					if (timer.isRunning()){
+						timer.stop();
+					} else {
+						timer.start();
+					}
+				}
 				case KeyEvent.VK_ENTER:
 					ball.launch();
+
+					
+			}
+		}
+		@Override
+		public void keyPressed(KeyEvent e) {
+			int keyCode = e.getKeyCode();
+			switch(keyCode) {
+//				case KeyEvent.VK_SPACE: {
+//					if (timer.isRunning()){
+//						timer.stop();
+//					} else {
+//						timer.start();
+//					}
+//				}
+				case KeyEvent.VK_ENTER:
+					ball.launch();
+
 					
 			}
 		}
@@ -79,10 +111,20 @@ public class Breakout extends JPanel {
 		this.speed = 200 + speed * 50;
 		this.lives = 3;
 		this.score = 0;
+		this.scoreIncrement = 100;
 		this.increment = 1;
 		if (this.speed > this.fps)
 			this.increment = new Double(this.speed/this.fps).intValue();
 		this.setFocusable(true);
+		this.blockImages = new ArrayList<BufferedImage>();
+		for (int i = 0; i < 4; i++) {
+			try {
+				this.blockImages.add(ImageIO.read(new File("src/assets/block_" + (i+1) + ".png")));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
 		MouseAdapter mouseEvents = new MouseEvents();
 		
 		timer = new Timer(1000/this.fps, new ActionListener() {
@@ -97,6 +139,7 @@ public class Breakout extends JPanel {
 		this.addMouseListener(mouseEvents);
 		this.addMouseMotionListener(mouseEvents);
 		this.addKeyListener(keyEvents);
+		
 		
 		// Transparent 16 x 16 pixel cursor image.
 		BufferedImage cursorImg = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
@@ -123,6 +166,7 @@ public class Breakout extends JPanel {
 					catch (Exception e) {
 						System.err.println("Invalid input parameters! Using defaults");
 					}
+						
 					JFrame window = new JFrame("Breakout");
 					window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 					window.setSize(1280, 720);
@@ -151,6 +195,7 @@ public class Breakout extends JPanel {
 		while (ball.checkCollision(paddle) == Collision.UP) {
 			ball.changeDirection(pb);
 			ball.update(this.increment);
+			this.scoreIncrement = 100;
 		}
 		Iterator<Block> iter = blocks.iterator();
 		double minDist = MODEL_SIZE.x * MODEL_SIZE.x + MODEL_SIZE.y + MODEL_SIZE.y ;
@@ -165,20 +210,27 @@ public class Breakout extends JPanel {
 				nearestCollision = bc;
 				removeBlock = block;
 			}
-			
-			
 		}
+		System.out.println(nearestCollision);
+		//timer.stop();
 		if (removeBlock != null && nearestCollision != Collision.NONE) {
-			//System.out.println(nearestCollision);
-			ball.changeDirection(nearestCollision);
+			
+			if (!ball.isAcidic()) {
+				ball.changeDirection(nearestCollision);
+			}
 			//timer.stop();
-			score+=15;
-			if (removeBlock.getHealth() < 2){
+			score+=scoreIncrement;
+			scoreIncrement += 100;
+			if (removeBlock.getHealth() < 2) {
+				if (removeBlock.hasPowerup()) {
+					Random rand = new Random();
+					powerUps.add(new PowerUp(removeBlock.getPos(), this.POWERUP_SIZE, Color.BLACK, rand.nextInt(3)));
+				}
 				blocks.remove(removeBlock);
 			} else {
 				removeBlock.hit();
 			}
-			//timer.stop();
+			
 		}
 		
 		if (blocks.size() == 0) {
@@ -189,20 +241,46 @@ public class Breakout extends JPanel {
 	public void update() {
 		if (ball.launched()) {
 			Collision collision = ball.update(this.increment);
-			if (collision == Collision.DOWN) {
+			Iterator<PowerUp> iter = powerUps.iterator();
+			while (iter.hasNext()) {
+				PowerUp powerUp = iter.next();
+				Collision c = powerUp.update(this.increment);
+				if (c == Collision.DOWN) {
+					iter.remove();
+					this.scoreIncrement = 100;
+				} else {
+					Collision pp = powerUp.checkCollision(paddle);
+					if (pp != Collision.NONE) {
+						this.score+=500;
+						paddle.addPowerUp(powerUp.getType());
+						ball.addPowerUp(powerUp.getType());
+						iter.remove();
+					}
+				}
+			}
+			
+			
+			if (collision == Collision.UP) {
 				this.reset();
 			}
-			if (collision == Collision.NONE) {
+			else if (collision == Collision.NONE) {
 				this.checkCollision();
 			}
 		}
-		 this.repaint();
+		if (ball.isAcidic()) {
+			ball.checkPowerupDuration();
+		}
+		this.repaint();
 	}
 	
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D)g;
+		for (PowerUp p: this.powerUps) {
+			this.drawBreakoutObj(g2, p);
+		}
+		
 		for (Block b: this.blocks) {
 			this.drawBreakoutObj(g2, b);
 		}
@@ -225,7 +303,6 @@ public class Breakout extends JPanel {
 				(MODEL_SIZE.x * MODEL_SIZE.y));
 		int scaledSize = new Double(size * scaledFactor).intValue();
 		scaledSize = (scaledSize < 15) ? 15: scaledSize;
-		System.out.println(scaledSize);
 		Point scaledLocation = getScaledCoordinates(location);
 		g2.setColor(color);
 		g2.setFont(new Font(type, style, scaledSize));
@@ -248,12 +325,13 @@ public class Breakout extends JPanel {
 		paddle = new Paddle(getInitPaddlePos(), PADDLE_SIZE, Color.GRAY);
 		ball = new Ball(getInitBallPos(), BALL_SIZE, 1, Color.RED);
 		blocks = new ArrayList<Block>();
+		powerUps = new ArrayList<PowerUp>();
 		Point blocksStartingPos = getBlocksStaringPos();
 		Point blockSize = getBlockSize();
 		ArrayList<Point> points = readFile();
 		for (Point point: points) {
 			Random rand = new Random();
-			blocks.add(new Block(point, BLOCK_SIZE, this.getColor(rand.nextInt(5)), rand.nextInt(4)+1, true));
+			blocks.add(new Block(point, BLOCK_SIZE, this.getColor(rand.nextInt(5)), rand.nextInt(3)+1, true));
 		}
 	}
 	
@@ -279,14 +357,12 @@ public class Breakout extends JPanel {
             BufferedReader in = new BufferedReader(new FileReader("src/blocks.txt"));
             String str;
             while ((str = in.readLine()) != null) {
-                System.out.println(str);
                 try {
                 	String[] ar=str.split(",");
                 	Point p = new Point(Integer.parseInt(ar[0].trim()), Integer.parseInt(ar[1].trim()));
                 	blockLocation.add(p);
                 }
                 catch (Exception e) {
-                	 
                 }
             }
             in.close();
