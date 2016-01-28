@@ -2,9 +2,8 @@ package breakout;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import breakout.Ball;
 enum Collision {
-	UP, DOWN, LEFT, RIGHT, CORNER, NONE
+	UP, DOWN, LEFT, RIGHT, NONE
 }
 
 public class BreakoutObj {
@@ -81,21 +80,13 @@ public class BreakoutObj {
 			if (wy > hx)
 		        if (wy > -hx)
 		            return Collision.DOWN;
-		        else if (wy < -hx)
-		            return Collision.LEFT;
 		        else
-		        	return Collision.CORNER;
-		    else if (wy < hx) {
+		            return Collision.LEFT;
+		    else {
 		        if (wy > -hx) 
 		            return Collision.RIGHT;
-		        else if (wy < -hx) {
+		        else
 		            return Collision.UP;
-		        } else {
-		        	return Collision.CORNER;
-		        }
-		    }
-		    else {
-		    	return Collision.CORNER;
 		    }
 		} else {
 			return Collision.NONE;

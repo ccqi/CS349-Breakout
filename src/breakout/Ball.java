@@ -6,16 +6,14 @@ import java.awt.Point;
 import java.util.ArrayList;
 
 public class Ball extends BreakoutObj{
-	private int radius;
 	private boolean launched;
 	private boolean acid;
 	private long powerupStart;
 	private int vX;
 	private int vY;
 	
-	public Ball(Point location, Point size, int radius, Color color) {
+	public Ball(Point location, Point size, Color color) {
 		super(location, size, color);
-		this.radius = radius;
 		this.launched = false;
 		this.acid = false;
 		this.vX = 1;
@@ -28,7 +26,7 @@ public class Ball extends BreakoutObj{
 		if (this.acid) {
 			g2.setColor(Color.GREEN);
 		}
-		g2.fillRect(scaledLocation.x, scaledLocation.y, scaledSize.x, scaledSize.y);
+		g2.fillOval(scaledLocation.x, scaledLocation.y, scaledSize.x, scaledSize.y);
 	}
 	
 	@Override
@@ -45,16 +43,13 @@ public class Ball extends BreakoutObj{
 	}
 	
 	public Collision update(int increment) {
-		System.out.println(vX + "," + vY);
 		if (launched) {
 			Point newPos = new Point(this.location);
 			newPos.x += increment * vX;
 			newPos.y += increment * vY;
 			Collision collision = checkBounds(newPos);
 			this.changeDirection(collision);
-			if (collision == Collision.NONE) {
-				this.location = newPos;
-			}
+			this.location = newPos;
 			return collision;
 		}
 		return Collision.NONE;

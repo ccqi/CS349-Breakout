@@ -41,7 +41,9 @@ public class Paddle extends BreakoutObj{
 			}
 			this.size.x = newWidth;
 		}
+		default: {
 			
+		}
 		}
 	}
 }

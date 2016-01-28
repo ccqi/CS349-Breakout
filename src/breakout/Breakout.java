@@ -60,12 +60,7 @@ public class Breakout extends JPanel {
 		}
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			//ball.launch();
-			if (timer.isRunning()){
-				timer.stop();
-			} else {
-				timer.start();
-			}
+			ball.launch();
 		}
 	}
 	
@@ -74,41 +69,16 @@ public class Breakout extends JPanel {
 		public void keyReleased(KeyEvent e) {
 			int keyCode = e.getKeyCode();
 			switch(keyCode) {
-				case KeyEvent.VK_SPACE: {
-					if (timer.isRunning()){
-						timer.stop();
-					} else {
-						timer.start();
-					}
-				}
+				case KeyEvent.VK_SPACE:
 				case KeyEvent.VK_ENTER:
-					ball.launch();
-
-					
-			}
-		}
-		@Override
-		public void keyPressed(KeyEvent e) {
-			int keyCode = e.getKeyCode();
-			switch(keyCode) {
-//				case KeyEvent.VK_SPACE: {
-//					if (timer.isRunning()){
-//						timer.stop();
-//					} else {
-//						timer.start();
-//					}
-//				}
-				case KeyEvent.VK_ENTER:
-					ball.launch();
-
-					
+					ball.launch();					
 			}
 		}
 	}
 	
 	public Breakout(int fps, int speed) {
 		this.fps = fps;
-		this.speed = 200 + speed * 50;
+		this.speed = 150 + speed * 50;
 		this.lives = 3;
 		this.score = 0;
 		this.scoreIncrement = 100;
@@ -157,16 +127,37 @@ public class Breakout extends JPanel {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					int fps = 30;
+					int fps = 60;
 					int speed = 2;
 					try {
 						fps = Integer.parseInt(args[0]);
 						speed = Integer.parseInt(args[1]);
+						if (fps < 25 || fps > 144 || speed < 1 || speed > 5 ) {
+							throw new Exception("Parameters out of range");
+						}
 					}
 					catch (Exception e) {
 						System.err.println("Invalid input parameters! Using defaults");
+						fps = 60;
+						speed = 2;
 					}
-						
+					String[] choices = {"Play Game"};
+					String info = "Charles Qi\n205077209\nBreakout\n"+
+					"Conquer your inner demons by defeating CS349 in breakout!\n"+
+					"Press space/enter/left mouse to launch your ball from the paddle to destroy all the blocks!\n"+
+					"Use your mouse to control your paddle and prevent your ball from reaching the ground\n"+
+					"Powerups may drop from randomly blocks, some may aid you, but others are placed by TAs/Profs "+
+					"to prevent you from reaching your goal\n";
+					int result = JOptionPane.showOptionDialog(
+					                               null                    
+					                             , info    
+					                             , "Breakout"            
+					                             , JOptionPane.YES_NO_OPTION  
+					                             , JOptionPane.PLAIN_MESSAGE 
+					                             , null                    
+					                             , choices
+					                             , null
+					                           );
 					JFrame window = new JFrame("Breakout");
 					window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 					window.setSize(1280, 720);
@@ -211,14 +202,14 @@ public class Breakout extends JPanel {
 				removeBlock = block;
 			}
 		}
-		System.out.println(nearestCollision);
-		//timer.stop();
+
+
 		if (removeBlock != null && nearestCollision != Collision.NONE) {
 			
 			if (!ball.isAcidic()) {
 				ball.changeDirection(nearestCollision);
 			}
-			//timer.stop();
+
 			score+=scoreIncrement;
 			scoreIncrement += 100;
 			if (removeBlock.getHealth() < 2) {
@@ -235,6 +226,7 @@ public class Breakout extends JPanel {
 		
 		if (blocks.size() == 0) {
 			timer.stop();
+			this.showScore(true);
 		}
 	}
 	
@@ -245,7 +237,7 @@ public class Breakout extends JPanel {
 			while (iter.hasNext()) {
 				PowerUp powerUp = iter.next();
 				Collision c = powerUp.update(this.increment);
-				if (c == Collision.DOWN) {
+				if (c == Collision.UP) {
 					iter.remove();
 					this.scoreIncrement = 100;
 				} else {
@@ -292,6 +284,60 @@ public class Breakout extends JPanel {
 		Toolkit.getDefaultToolkit().sync();
 	}
 	
+	private void showScore(boolean win) {
+		if (win) {
+			this.score += 50000 + lives * 10000;
+		}
+		String msg = win ? "You win!": "You lost!";
+		JFrame scoreFrame = new JFrame(msg);
+		scoreFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		scoreFrame.setSize(320, 300);
+		
+		JPanel panel = new JPanel();
+		JButton no = new JButton("No");
+		no.addMouseListener(new MouseAdapter(){
+			public void mouseClicked(MouseEvent e) {
+				System.exit(1);
+			}
+		});
+		JButton yes = new JButton("Yes");
+		yes.addMouseListener(new MouseAdapter(){
+			public void mouseClicked(MouseEvent e) {
+				scoreFrame.setVisible(false);
+				initModel();
+				lives = 3;
+				score = 0;
+				scoreIncrement = 100;
+				timer.start();
+			}
+		});
+		JLabel msgLabel = new JLabel(msg);
+		msgLabel.setFont(new Font("IMPACT", Font.BOLD, 48));
+		if (win) {
+			msgLabel.setForeground(Color.GREEN);
+		} else {
+			msgLabel.setForeground(Color.RED);
+		}
+		JLabel scoreLabel = new JLabel("Your final score is: ");
+		scoreLabel.setFont(new Font("IMPACT", Font.ITALIC, 28));
+		scoreLabel.setForeground(Color.BLACK);
+		JLabel scoreDisplay = new JLabel(Integer.toString(this.score));
+		scoreDisplay.setFont(new Font("IMPACT", Font.BOLD, 48));
+		scoreDisplay.setForeground(Color.BLACK);
+		JLabel playAgain = new JLabel("Would you like to play again?");
+		playAgain.setFont(new Font("IMPACT", Font.PLAIN, 18));
+		playAgain.setForeground(Color.BLACK);
+		panel.add(msgLabel);
+		panel.add(scoreLabel);
+		panel.add(scoreDisplay);
+		panel.add(playAgain);
+		panel.add(yes);
+		panel.add(no);
+		scoreFrame.add(panel);
+		scoreFrame.getContentPane().setBackground(Color.BLACK);
+		scoreFrame.setVisible(true);
+	}
+	
 	private void drawBreakoutObj(Graphics2D g2, BreakoutObj b) {
 		Point scaledLocation = getScaledCoordinates(b.getPos());
 		Point scaledSize = getScaledCoordinates(b.getSize());
@@ -323,15 +369,13 @@ public class Breakout extends JPanel {
 	
 	private void initModel() {
 		paddle = new Paddle(getInitPaddlePos(), PADDLE_SIZE, Color.GRAY);
-		ball = new Ball(getInitBallPos(), BALL_SIZE, 1, Color.RED);
+		ball = new Ball(getInitBallPos(), BALL_SIZE, Color.RED);
 		blocks = new ArrayList<Block>();
 		powerUps = new ArrayList<PowerUp>();
-		Point blocksStartingPos = getBlocksStaringPos();
-		Point blockSize = getBlockSize();
 		ArrayList<Point> points = readFile();
 		for (Point point: points) {
 			Random rand = new Random();
-			blocks.add(new Block(point, BLOCK_SIZE, this.getColor(rand.nextInt(5)), rand.nextInt(3)+1, true));
+			blocks.add(new Block(point, BLOCK_SIZE, this.getColor(rand.nextInt(5)), rand.nextInt(3)+1));
 		}
 	}
 	
@@ -346,6 +390,7 @@ public class Breakout extends JPanel {
 		}
 		if (this.lives == 0 ){
 			timer.stop();
+			this.showScore(false);
 		} else {
 			this.lives--;
 		}
@@ -382,20 +427,6 @@ public class Breakout extends JPanel {
 		int x = MODEL_SIZE.x/2 - BALL_SIZE.x/2;
 		int y = MODEL_SIZE.y - 30 - PADDLE_SIZE.y - BALL_SIZE.y;
 		return new Point(x, y);
-	}
-	
-	private Point getBlocksStaringPos() {
-		int x = MODEL_SIZE.x / 10;
-		int y = 3 * MODEL_SIZE.y / 20;
-		return new Point(x, y);
-				
-	}
-	
-	private Point getBlockSize() {
-		int x = 4 * MODEL_SIZE.x / 75;
-		int y = 3 * MODEL_SIZE.y / 75;
-		return new Point(x, y);
-				
 	}
 	
 	private Color getColor(int level) {
