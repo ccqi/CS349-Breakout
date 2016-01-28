@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
 
@@ -46,6 +47,7 @@ public class Breakout extends JPanel {
 	public final static Point BLOCK_SIZE = new Point(65, 20);
 	public final static Point POWERUP_SIZE = new Point(30, 30);
 	public static ArrayList<BufferedImage> blockImages;
+	public static BufferedImage powerUpImage;
 	
 	
 	public JFrame window;
@@ -60,7 +62,12 @@ public class Breakout extends JPanel {
 		}
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			ball.launch();
+			//ball.launch();
+			if (timer.isRunning()) {
+				timer.stop();
+			} else {
+				timer.start();
+			}
 		}
 	}
 	
@@ -87,9 +94,15 @@ public class Breakout extends JPanel {
 			this.increment = new Double(this.speed/this.fps).intValue();
 		this.setFocusable(true);
 		this.blockImages = new ArrayList<BufferedImage>();
+		try {
+			this.powerUpImage = ImageIO.read(new File("assets/powerup.png"));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		for (int i = 0; i < 4; i++) {
 			try {
-				this.blockImages.add(ImageIO.read(new File("src/assets/block_" + (i+1) + ".png")));
+				this.blockImages.add(ImageIO.read(new File("assets/block_" + (i+1) + ".png")));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -203,7 +216,6 @@ public class Breakout extends JPanel {
 			}
 		}
 
-
 		if (removeBlock != null && nearestCollision != Collision.NONE) {
 			
 			if (!ball.isAcidic()) {
@@ -221,7 +233,6 @@ public class Breakout extends JPanel {
 			} else {
 				removeBlock.hit();
 			}
-			
 		}
 		
 		if (blocks.size() == 0) {
@@ -399,13 +410,20 @@ public class Breakout extends JPanel {
 	private ArrayList<Point> readFile() {
 		ArrayList<Point> blockLocation = new ArrayList<Point>();
 		try {
-            BufferedReader in = new BufferedReader(new FileReader("src/blocks.txt"));
+            BufferedReader in = new BufferedReader(new FileReader("blocks.txt"));
             String str;
+            HashMap<Point, Boolean> exist = new HashMap<Point, Boolean>();
             while ((str = in.readLine()) != null) {
                 try {
                 	String[] ar=str.split(",");
                 	Point p = new Point(Integer.parseInt(ar[0].trim()), Integer.parseInt(ar[1].trim()));
-                	blockLocation.add(p);
+                	if (exist.containsKey(p)) {
+                		System.out.println("Duplicate" + p);
+                	} else {
+                		exist.put(p, true);
+                		blockLocation.add(p);
+                	}
+                	
                 }
                 catch (Exception e) {
                 }

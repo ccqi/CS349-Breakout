@@ -19,12 +19,8 @@ public class PowerUp extends BreakoutObj {
 	private int type;
 	public PowerUp(Point location, Point size, Color color, int type) {
 		super(location, size, color);
-		try {
-			this.image = ImageIO.read(new File("src/assets/powerup.png"));
-			this.type = type;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		this.image = Breakout.powerUpImage;
+		this.type = type;
 	}
 	public Collision update(int increment) {
 		this.location.y += increment;
