@@ -9,8 +9,8 @@ public class Ball extends BreakoutObj{
 	private boolean launched;
 	private boolean acid;
 	private long powerupStart;
-	private int vX;
-	private int vY;
+	public double vX;
+	public double vY;
 	
 	public Ball(Point location, Point size, Color color) {
 		super(location, size, color);
@@ -119,6 +119,11 @@ public class Ball extends BreakoutObj{
 			this.acid = false;
 			this.powerupStart = 0;
 		}
+	}
+	
+	public void setVel(double vx, double vy) {
+		this.vX = vx;
+		this.vY = vy;
 	}
 	
 	

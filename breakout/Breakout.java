@@ -136,18 +136,18 @@ public class Breakout extends JPanel {
 			public void run() {
 				try {
 					int fps = 60;
-					int speed = 2;
+					int speed = 3;
 					try {
 						fps = Integer.parseInt(args[0]);
 						speed = Integer.parseInt(args[1]);
-						if (fps < 25 || fps > 144 || speed < 1 || speed > 5 ) {
+						if (fps < 25 || fps > 60 || speed < 1 || speed > 5 ) {
 							throw new Exception("Parameters out of range");
 						}
 					}
 					catch (Exception e) {
 						System.err.println("Invalid input parameters! Using defaults");
 						fps = 60;
-						speed = 2;
+						speed = 3;
 					}
 					String[] choices = {"Play Game"};
 					String info = "Charles Qi\n205077209\nBreakout\n"+
@@ -191,10 +191,14 @@ public class Breakout extends JPanel {
 	
 	public void checkCollision() {
 		Collision pb = ball.checkCollision(paddle);
-		while (ball.checkCollision(paddle) == Collision.UP) {
-			ball.changeDirection(pb);
-			ball.update(this.increment);
-			this.scoreIncrement = 100;
+		this.scoreIncrement = 100;
+		
+		if (pb == Collision.UP){
+			double dist = ball.getPos().x + ball.getSize().x/2 - (paddle.getPos().x + paddle.getSize().x/2);
+			double speed = ball.vX * ball.vX + ball.vY * ball.vY;
+			double xVel = dist * 2.5 / paddle.getSize().x;
+			double yVel = -Math.sqrt(speed - xVel * xVel); 
+			ball.setVel(xVel, yVel);
 		}
 		Iterator<Block> iter = blocks.iterator();
 		double minDist = MODEL_SIZE.x * MODEL_SIZE.x + MODEL_SIZE.y + MODEL_SIZE.y ;
@@ -287,7 +291,7 @@ public class Breakout extends JPanel {
 		this.drawString(g2, "FPS: " + this.fps, Color.YELLOW, new Point(30,40), "IMPACT", Font.BOLD, 18);
 		this.drawString(g2, "Score: " + this.score, Color.WHITE, new Point(30,70),"IMPACT", Font.BOLD, 18);
 		this.drawString(g2, "Lives: " + this.lives, Color.WHITE, new Point(30,100),"IMPACT", Font.BOLD, 18);
-		ssToolkit.getDefaultToolkit().sync();
+		Toolkit.getDefaultToolkit().sync();
 	}
 	
 	private void showScore(boolean win) {
