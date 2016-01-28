@@ -62,12 +62,7 @@ public class Breakout extends JPanel {
 		}
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			//ball.launch();
-			if (timer.isRunning()) {
-				timer.stop();
-			} else {
-				timer.start();
-			}
+			ball.launch();
 		}
 	}
 	
@@ -292,7 +287,7 @@ public class Breakout extends JPanel {
 		this.drawString(g2, "FPS: " + this.fps, Color.YELLOW, new Point(30,40), "IMPACT", Font.BOLD, 18);
 		this.drawString(g2, "Score: " + this.score, Color.WHITE, new Point(30,70),"IMPACT", Font.BOLD, 18);
 		this.drawString(g2, "Lives: " + this.lives, Color.WHITE, new Point(30,100),"IMPACT", Font.BOLD, 18);
-		Toolkit.getDefaultToolkit().sync();
+		ssToolkit.getDefaultToolkit().sync();
 	}
 	
 	private void showScore(boolean win) {
